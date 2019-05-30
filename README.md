@@ -11,8 +11,7 @@ Let's play !!
 
 ## Demo
 
-![Demo](file:///C:/Users/j_watanabe/Pictures/demo_baller.PNG)
-
+![Demo](https://d.kuku.lu/3a9dd3fd45)
 
 ## VS. 
 
