@@ -17,6 +17,7 @@ namespace baller
         Vector ballSpeed;
         int ballRadius;
         Rectangle paddlePos;
+        List<Rectangle> blockPos;
 
         public Form1()
         {
@@ -27,8 +28,17 @@ namespace baller
             this.ballRadius = 10;
             this.paddlePos = new Rectangle(100, this.Height - 50, 100, 5);
 
+            this.blockPos = new List<Rectangle>();
+            for (int x = 0; x <= this.Height; x += 100)
+            {
+                for (int y = 0; y <= 150; y += 40)
+                {
+                    this.blockPos.Add(new Rectangle(25 + x, y, 80, 25));
+                }
+            }
+
             Timer timer = new Timer();
-            timer.Interval = 33;
+            timer.Interval = 10;
             timer.Tick += new EventHandler(Update);
             timer.Start();
         }
@@ -52,6 +62,27 @@ namespace baller
             double a2 = DotProduct(dir2, lineDir);
 
             return (a1 * a2 < 0 && dist < radius) ? true : false;
+        }
+
+        int BlockVsCircle(Rectangle block, Vector ball)
+        {
+            if (LineVsCircle(new Vector(block.Left, block.Top),
+                new Vector(block.Right, block.Top), ball, ballRadius))
+                return 1;
+
+            if (LineVsCircle(new Vector(block.Left, block.Bottom),
+                new Vector(block.Right, block.Bottom), ball, ballRadius))
+                return 2;
+
+            if (LineVsCircle(new Vector(block.Right, block.Top),
+                new Vector(block.Right, block.Bottom), ball, ballRadius))
+                return 3;
+
+            if (LineVsCircle(new Vector(block.Left, block.Top),
+                new Vector(block.Left, block.Bottom), ball, ballRadius))
+                return 4;
+
+            return -1;
         }
 
         private void Update(object sender, EventArgs e)
@@ -79,6 +110,22 @@ namespace baller
                 ballSpeed.Y *= -1;
             }
 
+            // ブロックの当たり判定
+            for (int i = 0; i < this.blockPos.Count; i++)
+            {
+                int collision = BlockVsCircle(blockPos[i], ballPos);
+                if (collision == 1 || collision == 2)
+                {
+                    ballSpeed.Y *= -1;
+                    this.blockPos.Remove(blockPos[i]);
+                }
+                else if (collision == 3 || collision == 4)
+                {
+                    ballSpeed.X *= -1;
+                    this.blockPos.Remove(blockPos[i]);
+                }
+            }
+           
             // 再描画
             Invalidate();
         }
@@ -87,13 +134,18 @@ namespace baller
         {
             SolidBrush pinkBrush = new SolidBrush(Color.HotPink);
             SolidBrush grayBrush = new SolidBrush(Color.DimGray);
-
+            SolidBrush blueBrush = new SolidBrush(Color.LightBlue);
 
             float px = (float)this.ballPos.X - ballRadius;
             float py = (float)this.ballPos.Y - ballRadius;
 
             e.Graphics.FillEllipse(pinkBrush, px, py, this.ballRadius * 2, this.ballRadius * 2);
             e.Graphics.FillRectangle(grayBrush, paddlePos);
+
+            for (int i = 0; i < this.blockPos.Count; i++)
+            {
+                e.Graphics.FillRectangle(blueBrush, blockPos[i]);
+            }
         }
         private void Form1_Load(object sender, EventArgs e)
         {
